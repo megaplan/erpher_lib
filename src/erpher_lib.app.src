@@ -1,0 +1,14 @@
+{application, erpher_lib, [
+    {description, "erpher_lib"},
+    {id, "erpher_lib"},
+    {vsn, "1.0"},
+    {modules, [
+        mpln_misc_conf,
+        mpln_misc_log,
+        mpln_misc_time,
+        mpln_p_debug
+    ]},
+    {registered, []},
+    {applications, [kernel, stdlib]}
+]}.
+
