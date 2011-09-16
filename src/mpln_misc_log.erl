@@ -33,10 +33,19 @@
 %%% Exports
 %%%----------------------------------------------------------------------------
 
--export([prepare_log/1]).
+-export([prepare_log/1, need_rotate/2]).
 
 %%%----------------------------------------------------------------------------
-%%% api
+%%% Includes
+%%%----------------------------------------------------------------------------
+
+-include("types.hrl").
+-ifdef(TEST).
+-include_lib("eunit/include/eunit.hrl").
+-endif.
+
+%%%----------------------------------------------------------------------------
+%%% API
 %%%----------------------------------------------------------------------------
 %%
 %% @doc creates log file, shuts down tty log in case of log file
@@ -54,10 +63,46 @@ prepare_log(File) ->
         {error, Reason} ->
             {error, Reason}
     end.
+
 %%%----------------------------------------------------------------------------
 %%% Internal functions
 %%%----------------------------------------------------------------------------
+%%
+%% @doc returns a string with base part and time stamp
+%%
 get_fname(File) ->
-    T = mpln_misc_time:get_ts(),
+    T = mpln_misc_time:get_time_str2(),
     lists:flatten([File ++ "_" ++ T]).
+
+%%-----------------------------------------------------------------------------
+%%
+%% @doc checks if there was enough time for log to be rotated
+%% @since 2011-09-16 13:39
+%%
+-spec need_rotate(t_datetime(), minute | hour | day | month) -> boolean().
+
+need_rotate(Last, Type) ->
+    Cur = calendar:local_time(),
+    need_rotate(Last, Type, Cur).
+
+%%-----------------------------------------------------------------------------
+%%
+%% @doc checks if there was enough time for log to be rotated
+%%
+-spec need_rotate(t_datetime(), minute | hour | day | month, t_datetime()) ->
+    boolean().
+
+need_rotate({{Y, M, D}, {H, Mn, _}}, 'minute', {{Y2, M2, D2}, {H2, Mn2, _}}) ->
+    (Y /= Y2) or (M /= M2) or (D /= D2) or (H /= H2) or (Mn /= Mn2);
+need_rotate({{Y, M, D}, {H, _, _}}, 'hour', {{Y2, M2, D2}, {H2, _, _}}) ->
+    (Y /= Y2) or (M /= M2) or (D /= D2) or (H /= H2);
+need_rotate({{Y, M, D}, _}, 'day', {{Y2, M2, D2}, _}) ->
+    (Y /= Y2) or (M /= M2) or (D /= D2);
+need_rotate({{Y, M, _}, _}, 'month', {{Y2, M2, _}, _}) ->
+    (Y /= Y2) or (M /= M2);
+need_rotate(_, _, _) ->
+    % last resort must be false, so any inconsistencies do not lead
+    % to log rotate
+    false.
+
 %%-----------------------------------------------------------------------------

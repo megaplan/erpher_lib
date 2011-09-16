@@ -37,40 +37,16 @@
 -export([uuid/0]).
 -export([get_time_str_us/0, get_time_str_us/1]).
 -export([get_time_str/0, get_time_str/1]).
+-export([get_time_str2/0, get_time_str2/1]).
 
 %%%----------------------------------------------------------------------------
 %%% Includes
 %%%----------------------------------------------------------------------------
 
+-include("types.hrl").
 -ifdef(TEST).
 -include_lib("eunit/include/eunit.hrl").
 -endif.
-
-%%%----------------------------------------------------------------------------
-%%% Types
-%%%----------------------------------------------------------------------------
-%% copied from stdlib/calendar.erl
-%%
--type year()     :: non_neg_integer().
-%-type year1970() :: 1970..10000.    % should probably be 1970..
--type month()    :: 1..12.
--type day()      :: 1..31.
--type hour()     :: 0..23.
--type minute()   :: 0..59.
--type second()   :: 0..59.
-%-type daynum()   :: 1..7.
-%-type ldom()     :: 28 | 29 | 30 | 31. % last day of month
-
--type t_now()    :: {non_neg_integer(),non_neg_integer(),non_neg_integer()}.
-
--type t_date()         :: {year(),month(),day()}.
--type t_time()         :: {hour(),minute(),second()}.
--type t_datetime()     :: {t_date(),t_time()}.
-%-type t_datetime1970() :: {{year1970(),month(),day()},t_time()}.
-
--type second_f()       :: float().
--type t_time_f()       :: {hour(),minute(),second_f()}.
--type t_datetime_f()   :: {t_date(),t_time_f()}.
 
 %%%----------------------------------------------------------------------------
 %%% API
@@ -129,6 +105,27 @@ get_time_str(Now) ->
 
 %%-----------------------------------------------------------------------------
 %%
+%% @doc returns time string (ymd-hms) for current time
+%% @since 2011-09-16 14:33
+%%
+-spec get_time_str2() -> string().
+
+get_time_str2() ->
+    get_time_str2(now()).
+
+%%-----------------------------------------------------------------------------
+%%
+%% @doc returns time string (ymd-hms) for defined time
+%% @since 2011-09-16 14:33
+%%
+-spec get_time_str2(t_now()) -> string().
+
+get_time_str2(Now) ->
+    DT = calendar:now_to_local_time(Now),
+    make_str2_int(DT).
+
+%%-----------------------------------------------------------------------------
+%%
 %% @doc returns binary filled by current time to be used as uuid
 %% @since 2011-07-15
 %%
@@ -158,6 +155,15 @@ make_str_float(DateTime) ->
 
 make_str_int(DateTime) ->
     make_str("~4.10.0B-~2.10.0B-~2.10.0B ~2.10.0B:~2.10.0B:~2.10.0B", DateTime).
+
+%%
+%% @doc returns time string (ymd-hms) for given time
+%% @since 2011-07-15
+%%
+-spec make_str2_int(t_datetime()) -> string().
+
+make_str2_int(DateTime) ->
+    make_str("~4.10.0B~2.10.0B~2.10.0B-~2.10.0B~2.10.0B~2.10.0B", DateTime).
 
 %%
 %% @doc returns time string (y-m-d h:m:s) according to the given format and
