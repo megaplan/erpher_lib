@@ -6,6 +6,7 @@
         mpln_misc_conf,
         mpln_misc_log,
         mpln_misc_time,
+        mpln_node_ctl,
         mpln_p_debug
     ]},
     {registered, []},
