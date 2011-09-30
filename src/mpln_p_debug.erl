@@ -36,6 +36,7 @@
 
 -export([p/5, p_ets/6]).
 -export([pr/4]).
+-export([log_http_res/3]).
 
 %%%----------------------------------------------------------------------------
 %%% Defines
@@ -44,7 +45,7 @@
 -define(use_p_debug, true).
 
 %%%----------------------------------------------------------------------------
-%%% api
+%%% API
 %%%----------------------------------------------------------------------------
 %%
 %% @doc prints string to error log, if configured loglevel higher or equal
@@ -121,4 +122,36 @@ p_ets(Str, Pars, Conf, Facility, Limit, Table) ->
 p_ets(_Str, _Pars, _Conf, _Facility, _Limit, _Table) -> ok.
 
 -endif.
+%%-----------------------------------------------------------------------------
+%%
+%% @doc logs http result. In case of result=200 logs more information
+%% in dependence of configured level
+%% @since 2011-09-30 19:19
+%% @TODO improve it
+%%
+-spec log_http_res(any(), tuple(), list()) -> ok.
+
+log_http_res(Src, {error, Reason}, Conf) ->
+    mpln_p_debug:pr({"http result error", Src, self(), Reason},
+                    Conf, http, 3);
+log_http_res(Src, {ok, {{_Ver, 200, _Txt}=Line, Hdr, _Body} = Result}, Conf) ->
+    N = proplists:get_value(http, Conf, 0),
+    if N >= 6 ->
+            mpln_p_debug:pr({"http result ok, 200", Src, self(), Result},
+                            Conf, http, 6);
+       N >= 5 ->
+            mpln_p_debug:pr({"http result ok, 200", Src, self(), Line, Hdr},
+                            Conf, http, 5);
+       N >= 3 ->
+            mpln_p_debug:pr({"http result ok, 200", Src, self()},
+                            Conf, http, 3);
+       true ->
+            ok
+    end;
+log_http_res(Src, {ok, {St, _Hdr, _Body}}, Conf) ->
+    mpln_p_debug:pr({"http result ok, other", Src, self(), St},
+                    Conf, http, 2);
+log_http_res(_Src, _Other, _Conf) ->
+    ok.
+
 %%-----------------------------------------------------------------------------
