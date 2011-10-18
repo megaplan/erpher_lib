@@ -9,7 +9,7 @@ EBIN_DIR := ebin
 HTML_DOC_DIR = doc/html
 ERLC_OPTS = +debug_info -DTEST
 ERLC := erlc $(ERLC_OPTS)
-VSN=1.0
+VSN=1.1
 APP_NAME=erpher_lib
 LICENSE=MIT
 
@@ -23,8 +23,13 @@ tests: $(EBIN_DIR)
 clean:
 	@rm -rvf $(EBIN_DIR)/* $(HTML_DOC_DIR)
 
+tags: ctags etags
+
 ctags:
 	cd $(SRC_DIR) ; ctags -R . ../include 
+
+etags:
+	cd $(SRC_DIR) ; etags -R . ../include 
 
 $(EBIN_DIR) :
 	( test -d $(EBIN_DIR) || mkdir -p $(EBIN_DIR) )
@@ -41,4 +46,4 @@ doc:
 		'"."' \
 		'[{dir,"$(HTML_DOC_DIR)"},{new, true},{hidden, true},{private, true},{def,[{vsn,"$(VSN)"}, {license, "(License: $(LICENSE))"}]}]'
 
-.PHONY: clean ctags dia doc
+.PHONY: clean tags ctags etags dia doc

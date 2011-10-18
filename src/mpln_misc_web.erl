@@ -25,6 +25,8 @@
 %%% @since 2011-10-17 15:23
 %%% @license MIT
 %%% @doc functions related to web
+%%% @TODO rework Base and Mid to use them as Head|Tail. And reverse in
+%%% the end.
 %%%
 
 -module(mpln_misc_web).
@@ -42,6 +44,12 @@
 -ifdef(TEST).
 -include_lib("eunit/include/eunit.hrl").
 -endif.
+
+%%%----------------------------------------------------------------------------
+%%% Defines
+%%%----------------------------------------------------------------------------
+
+-record(r, {b=[], m, i=0, v, f=false}).
 
 %%%----------------------------------------------------------------------------
 %%% API
@@ -68,9 +76,7 @@
 %% "a[0]=b&a[1]=2&a[33]=c&a[d][5]=e&a[d][f]=6&a[d][g][0]=h&a[d][g][1][0]=i1&a[d][g][1][1]=i2&a[d][g][1][2]=i3&a[d][g][j]=10"
 %% @since 2011-10-17 15:23
 %%
--record(r, {b=[], m, i=0, v, f=false}).
-
--spec flatten(list() | tuple()) -> string().
+-spec flatten(list() | tuple()) -> [{list(), any()}].
 
 flatten(D) ->
     flatten(D, false).
@@ -87,7 +93,11 @@ flatten(D, Struct) ->
 %%%----------------------------------------------------------------------------
 %%% Internal functions
 %%%----------------------------------------------------------------------------
-% noodles
+%%
+%% @doc The main body of flatten is noodles.
+%%
+-spec flatten(any(), list(), #r{}) -> list().
+
 flatten([], Acc, _R) ->
     error_logger:info_report({"flatten list end", Acc, _R}),
     Acc;
@@ -117,7 +127,13 @@ flatten(X, Acc, R) -> % when not is_list(X) ->
 .
 
 %%-----------------------------------------------------------------------------
-% in case of {K, V}
+%%
+%% @doc Pushes keys into Base part. For {Key, Value} case the Key replaces
+%% last item of Base part (which is an integer index usually). Middle part
+%% isn't used here.
+%% Marks the item if it has 'struct' to assist in removing it in the end of
+%% flatten.
+%%
 make_idx(#r{b=Base}, 'struct') ->
     % 'struct' - JSON decoders put this
     #r{b=Base++['struct'], f=true}
@@ -125,7 +141,7 @@ make_idx(#r{b=Base}, 'struct') ->
 make_idx(#r{b=Base, f=F}, K) ->
     #r{b=Base++[K], f=F}.
 
-% other
+% not {Key, Value} tuple
 make_idx(#r{m=undefined, i=Idx} = R) ->
     R#r{m=Idx, i=0}
 ;
@@ -133,6 +149,10 @@ make_idx(#r{b=Base, m=Mid, i=Idx} = R) ->
     R#r{b=Base ++ [Mid], m=Idx, i=0}.
 
 %%-----------------------------------------------------------------------------
+%%
+%% @doc gets an #r{} record and creates a compound key,
+%% removing 'struct' atoms from the key if asked.
+%%
 make_key(#r{b=Base, m=undefined, f=F}, Struct) ->
     make_key_0(Base, F, Struct);
 make_key(#r{b=Base, m=Mid, f=F}, Struct) ->
@@ -145,10 +165,19 @@ make_key_0(List, _, _) ->
     List.
 
 %%-----------------------------------------------------------------------------
+%%
+%% @doc removes 'struct' atoms from a list
+%%
 remove_struct(Key) ->
     [X || X <- Key, X =/= 'struct'].
 
 %%-----------------------------------------------------------------------------
+%%
+%% @doc gets an #r{} record and creates a {k,v} tuple possibly with
+%% a compound key, removing 'struct' atoms from the key if asked.
+%%
+-spec make_tuple(#r{}, boolean()) -> {list(), any()}.
+
 make_tuple(#r{v=Val} = R, Struct) ->
     % Struct: remove or not 'struct' atoms from a key
     Key = make_key(R, Struct),
