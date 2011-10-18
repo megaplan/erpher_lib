@@ -36,6 +36,7 @@
 %%%----------------------------------------------------------------------------
 
 -export([flatten/1, flatten/2, flatten_r/1, flatten/3]).
+-export([query_string/1, make_string/1]).
 
 %%%----------------------------------------------------------------------------
 %%% Includes
@@ -89,6 +90,38 @@ flatten(D, Struct) ->
     List = flatten(D, [], #r{}),
     L2 = lists:reverse(List),
     lists:map(fun(X) -> make_tuple(X, Struct) end, L2).
+
+%%-----------------------------------------------------------------------------
+%%
+%% @doc creates a query string from a list of {k,v} tuples. Keys in tuples
+%% can be compound.
+%% @since 2011-10-18 16:54
+%%
+-spec query_string(list()) -> string().
+
+query_string(List) ->
+    F = fun({K, V}) ->
+        Vstr = make_string(V),
+        make_query_key(K) ++ io_lib:format("=~s", [Vstr])
+    end,
+    List_str = lists:map(F, List),
+    error_logger:info_report({"query_string", List_str}),
+    string:join(List_str, "&")
+.
+
+%%-----------------------------------------------------------------------------
+%%
+%% @doc gets binary or list and makes it a string
+%% @since 2011-08-11 12:56
+%%
+-spec make_string(any()) -> string().
+
+make_string(B) when is_binary(B) ->
+    binary_to_list(B);
+make_string(A) when is_atom(A) ->
+    atom_to_list(A);
+make_string(D) ->
+    D.
 
 %%%----------------------------------------------------------------------------
 %%% Internal functions
@@ -182,5 +215,25 @@ make_tuple(#r{v=Val} = R, Struct) ->
     % Struct: remove or not 'struct' atoms from a key
     Key = make_key(R, Struct),
     {Key, Val}.
+
+%%-----------------------------------------------------------------------------
+%%
+%% @doc creates a [compound] key for a query
+%%
+make_query_key([]) ->
+    ""
+;
+make_query_key([H]) ->
+    Str = make_string(H),
+    io_lib:format(":~s", [Str])
+;
+make_query_key([H|T]) ->
+    F = fun(X) ->
+        Xstr = make_string(X),
+        io_lib:format("[~p]", [Xstr])
+    end,
+    Str = make_string(H),
+    io_lib:format("~s", [Str]) ++ lists:map(F, T)
+.
 
 %%-----------------------------------------------------------------------------
