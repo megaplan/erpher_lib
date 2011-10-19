@@ -26,7 +26,7 @@
 %%% @license MIT
 %%% @doc functions related to web
 %%% @TODO rework Base and Mid to use them as Head|Tail. And reverse in
-%%% the end.
+%%% the end. Or better rewrite it (flatten) completely.
 %%%
 
 -module(mpln_misc_web).
@@ -47,7 +47,7 @@
 -endif.
 
 %%%----------------------------------------------------------------------------
-%%% Defines
+%%% Records
 %%%----------------------------------------------------------------------------
 
 -record(r, {b=[], m, i=0, v, f=false}).
@@ -57,7 +57,11 @@
 %%%----------------------------------------------------------------------------
 %%
 %% @doc flattens a complex structure to a list of {Key, Value} tuples
-%% creating the long keys (kind of "k1.k2.k3") when necessary
+%% creating the long keys (kind of "k1.k2.k3") when necessary.
+%% Main purpose of flatten is to create a flat list of {K,V} tuples from
+%% a deep list after json decoder. All other variants _CAN_ give the _WRONG_
+%% result. You are warned. In fact even with a json decoder it can give
+%% the wrong data.
 %% Example:
 %% C = {a, [
 %%   b,
@@ -82,8 +86,10 @@
 flatten(D) ->
     flatten(D, false).
 
-% flatten and remove 'struct' atoms
+-spec flatten(list() | tuple(), boolean()) -> [{list(), any()}].
+
 flatten_r(D) ->
+    % flatten and remove 'struct' atoms
     flatten(D, true).
 
 flatten(D, Struct) ->
@@ -102,12 +108,11 @@ flatten(D, Struct) ->
 query_string(List) ->
     F = fun({K, V}) ->
         Vstr = make_string(V),
-        make_query_key(K) ++ io_lib:format("=~s", [Vstr])
+        Res = make_query_key(K) ++ io_lib:format("=~s", [Vstr]),
+        lists:flatten(Res)
     end,
     List_str = lists:map(F, List),
-    error_logger:info_report({"query_string", List_str}),
-    string:join(List_str, "&")
-.
+    string:join(List_str, "&").
 
 %%-----------------------------------------------------------------------------
 %%
@@ -116,6 +121,8 @@ query_string(List) ->
 %%
 -spec make_string(any()) -> string().
 
+make_string(X) when is_integer(X) ->
+    integer_to_list(X);
 make_string(B) when is_binary(B) ->
     binary_to_list(B);
 make_string(A) when is_atom(A) ->
@@ -227,13 +234,25 @@ make_query_key([H]) ->
     Str = make_string(H),
     io_lib:format(":~s", [Str])
 ;
+make_query_key([H|T]) when is_integer(H) ->
+    F = fun(X) ->
+        Xstr = make_string(X),
+        io_lib:format("[~s]", [Xstr])
+    end,
+    Str = make_string(H),
+    io_lib:format(":~s", [Str]) ++ lists:map(F, T)
+;
 make_query_key([H|T]) ->
     F = fun(X) ->
         Xstr = make_string(X),
-        io_lib:format("[~p]", [Xstr])
+        io_lib:format("[~s]", [Xstr])
     end,
     Str = make_string(H),
     io_lib:format("~s", [Str]) ++ lists:map(F, T)
+;
+make_query_key(X) ->
+    % not a list
+    X
 .
 
 %%-----------------------------------------------------------------------------
