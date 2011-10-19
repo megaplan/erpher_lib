@@ -108,8 +108,12 @@ flatten(D, Struct) ->
 query_string(List) ->
     F = fun({K, V}) ->
         Vstr = make_string(V),
-        Res = make_query_key(K) ++ io_lib:format("=~s", [Vstr]),
-        lists:flatten(Res)
+        Vsf = lists:flatten(Vstr),
+        Venc = yaws_api:url_encode(Vsf),
+        Kstr = make_query_key(K),
+        Ksf = lists:flatten(Kstr),
+        Kenc = yaws_api:url_encode(Ksf),
+        Kenc ++ "=" ++ Venc
     end,
     List_str = lists:map(F, List),
     string:join(List_str, "&").
@@ -139,30 +143,30 @@ make_string(D) ->
 -spec flatten(any(), list(), #r{}) -> list().
 
 flatten([], Acc, _R) ->
-    error_logger:info_report({"flatten list end", Acc, _R}),
+    %error_logger:info_report({"flatten list end", Acc, _R}),
     Acc;
 flatten([H|T], Acc, #r{i=Idx} = Key) ->
     New_key = make_idx(Key),
-    error_logger:info_report({"flatten list new_idx", H, T, Acc, Key, New_key}),
+    %error_logger:info_report({"flatten list new_idx", H, T, Acc, Key, New_key}),
     New_acc = flatten(H, Acc, New_key),
     flatten(T, New_acc, Key#r{i=Idx+1})
 ;
 flatten({K, V}, Acc, Key) ->
-    Ref = make_ref(),
+    %Ref = make_ref(),
     New_idx = make_idx(Key, K),
-    error_logger:info_report({"flatten, 1, k-v", Ref, K, V, Acc, Key, New_idx}),
+    %error_logger:info_report({"flatten, 1, k-v", Ref, K, V, Acc, Key, New_idx}),
     New_acc = flatten(V, Acc, New_idx),
-    error_logger:info_report({"flatten, 2, k-v", Ref, K, V, Acc, Key, New_acc}),
+    %error_logger:info_report({"flatten, 2, k-v", Ref, K, V, Acc, Key, New_acc}),
     New_acc
 ;
 flatten(X, Acc, R) when is_tuple(X) ->
-    error_logger:info_report({"flatten tuple", X, Acc, R}),
+    %error_logger:info_report({"flatten tuple", X, Acc, R}),
     L = tuple_to_list(X),
     flatten(L, Acc, R)
 ;
 flatten(X, Acc, R) -> % when not is_list(X) ->
     Item = R#r{v=X},
-    error_logger:info_report({"flatten rest", Item, Acc, R}),
+    %error_logger:info_report({"flatten rest", Item, Acc, R}),
     [Item | Acc]
 .
 
@@ -256,7 +260,7 @@ make_query_key([H|T]) ->
 ;
 make_query_key(X) ->
     % not a list
-    X
+    make_string(X)
 .
 
 %%-----------------------------------------------------------------------------
