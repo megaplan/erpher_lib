@@ -230,9 +230,13 @@ make_tuple(#r{v=Val} = R, Struct) ->
 make_query_key([]) ->
     ""
 ;
-make_query_key([H]) ->
+make_query_key([H]) when is_integer(H) ->
     Str = make_string(H),
     io_lib:format(":~s", [Str])
+;
+make_query_key([H]) ->
+    Str = make_string(H),
+    io_lib:format("~s", [Str])
 ;
 make_query_key([H|T]) when is_integer(H) ->
     F = fun(X) ->
