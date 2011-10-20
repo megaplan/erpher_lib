@@ -64,16 +64,6 @@ prepare_log(File) ->
             {error, Reason}
     end.
 
-%%%----------------------------------------------------------------------------
-%%% Internal functions
-%%%----------------------------------------------------------------------------
-%%
-%% @doc returns a string with base part and time stamp
-%%
-get_fname(File) ->
-    T = mpln_misc_time:get_time_str2(),
-    lists:flatten([File ++ "_" ++ T]).
-
 %%-----------------------------------------------------------------------------
 %%
 %% @doc checks if there was enough time for log to be rotated
@@ -84,6 +74,16 @@ get_fname(File) ->
 need_rotate(Last, Type) ->
     Cur = calendar:local_time(),
     need_rotate(Last, Type, Cur).
+
+%%%----------------------------------------------------------------------------
+%%% Internal functions
+%%%----------------------------------------------------------------------------
+%%
+%% @doc returns a string with base part and time stamp
+%%
+get_fname(File) ->
+    T = mpln_misc_time:get_time_str2(),
+    lists:flatten([File ++ "_" ++ T]).
 
 %%-----------------------------------------------------------------------------
 %%
