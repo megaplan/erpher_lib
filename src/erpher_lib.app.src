@@ -5,6 +5,7 @@
     {modules, [
         mpln_misc_conf,
         mpln_misc_log,
+        mpln_misc_run,
         mpln_misc_time,
         mpln_misc_web,
         mpln_node_ctl,
