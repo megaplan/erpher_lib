@@ -33,7 +33,7 @@
 %%% Exports
 %%%----------------------------------------------------------------------------
 
--export([write_pid/1]).
+-export([write_pid/1, remove_pid/1]).
 
 %%%----------------------------------------------------------------------------
 %%% Includes
@@ -59,6 +59,15 @@ write_pid(File) ->
             error_logger:info_report({?MODULE, write_pid_error, ?LINE, Reason}),
             {error, Reason}
     end.
+
+%%-----------------------------------------------------------------------------
+%%
+%% @doc removes pid file
+%%
+-spec remove_pid(string()) -> ok | {error, any()}.
+
+remove_pid(File) ->
+    file:delete(File).
 
 %%%----------------------------------------------------------------------------
 %%% Internal functions
