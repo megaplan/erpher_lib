@@ -69,7 +69,8 @@ prepare_log(File) ->
 %% @doc checks if there was enough time for log to be rotated
 %% @since 2011-09-16 13:39
 %%
--spec need_rotate(t_datetime(), minute | hour | day | month) -> boolean().
+-spec need_rotate(t_datetime(), never | minute | hour | day | month | year) ->
+    boolean().
 
 need_rotate(Last, Type) ->
     Cur = calendar:local_time(),
@@ -89,9 +90,11 @@ get_fname(File) ->
 %%
 %% @doc checks if there was enough time for log to be rotated
 %%
--spec need_rotate(t_datetime(), minute | hour | day | month, t_datetime()) ->
-    boolean().
+-spec need_rotate(t_datetime(), never | minute | hour | day | month | year,
+    t_datetime()) -> boolean().
 
+need_rotate(_, 'never', _) ->
+    false;
 need_rotate({{Y, M, D}, {H, Mn, _}}, 'minute', {{Y2, M2, D2}, {H2, Mn2, _}}) ->
     (Y /= Y2) or (M /= M2) or (D /= D2) or (H /= H2) or (Mn /= Mn2);
 need_rotate({{Y, M, D}, {H, _, _}}, 'hour', {{Y2, M2, D2}, {H2, _, _}}) ->
@@ -100,6 +103,8 @@ need_rotate({{Y, M, D}, _}, 'day', {{Y2, M2, D2}, _}) ->
     (Y /= Y2) or (M /= M2) or (D /= D2);
 need_rotate({{Y, M, _}, _}, 'month', {{Y2, M2, _}, _}) ->
     (Y /= Y2) or (M /= M2);
+need_rotate({{Y, _, _}, _}, 'year', {{Y2, _, _}, _}) ->
+    Y /= Y2;
 need_rotate(_, _, _) ->
     % last resort must be false, so any inconsistencies do not lead
     % to log rotate
