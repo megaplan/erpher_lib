@@ -90,7 +90,8 @@ get_fname(File) ->
 %%
 %% @doc checks if there was enough time for log to be rotated
 %%
--spec need_rotate(t_datetime(), never | minute | hour | day | month | year,
+-spec need_rotate(t_datetime(),
+    never | minute | hour | day | {dow, 0..7} | month | year,
     t_datetime()) -> boolean().
 
 need_rotate(_, 'never', _) ->
@@ -101,6 +102,10 @@ need_rotate({{Y, M, D}, {H, _, _}}, 'hour', {{Y2, M2, D2}, {H2, _, _}}) ->
     (Y /= Y2) or (M /= M2) or (D /= D2) or (H /= H2);
 need_rotate({{Y, M, D}, _}, 'day', {{Y2, M2, D2}, _}) ->
     (Y /= Y2) or (M /= M2) or (D /= D2);
+need_rotate({Prev_date, _}, {'dow', In_dow}, {Cur_date, _}) ->
+    Dow = get_day_of_week(In_dow),
+    Cur_dow = calendar:day_of_the_week(Cur_date),
+    (Prev_date /= Cur_date) and (Cur_dow == Dow);
 need_rotate({{Y, M, _}, _}, 'month', {{Y2, M2, _}, _}) ->
     (Y /= Y2) or (M /= M2);
 need_rotate({{Y, _, _}, _}, 'year', {{Y2, _, _}, _}) ->
@@ -109,5 +114,17 @@ need_rotate(_, _, _) ->
     % last resort must be false, so any inconsistencies do not lead
     % to log rotate
     false.
+
+%%-----------------------------------------------------------------------------
+%%
+%% @doc converts input day of week from crontab format (0..7) to calendar
+%% format (1..7)
+%%
+-spec get_day_of_week(0..7) -> 1..7.
+
+get_day_of_week(D) when (D >= 1) and (D =< 7) ->
+    D;
+get_day_of_week(_) ->
+    7.
 
 %%-----------------------------------------------------------------------------
