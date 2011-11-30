@@ -148,10 +148,14 @@ log_http_res(Src, {ok, {{_Ver, 200, _Txt}=Line, Hdr, _Body} = Result}, Conf) ->
        true ->
             ok
     end;
-log_http_res(Src, {ok, {St, _Hdr, _Body}}, Conf) ->
+log_http_res(Src, {ok, {St, _Hdr, _Body} = Res}, Conf) ->
     mpln_p_debug:pr({"http result ok, other", Src, self(), St},
-                    Conf, http, 2);
-log_http_res(_Src, _Other, _Conf) ->
+                    Conf, http, 2),
+    mpln_p_debug:pr({"http result ok, other, full result", Src, self(), Res},
+                    Conf, http, 5);
+log_http_res(Src, Other, Conf) ->
+    mpln_p_debug:pr({"http result unknown", Src, self(), Other},
+                    Conf, http, 5),
     ok.
 
 %%-----------------------------------------------------------------------------
