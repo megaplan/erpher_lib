@@ -54,7 +54,7 @@
 write_pid(File) ->
     case filelib:ensure_dir(File) of
         ok ->
-            write_file(File);
+            write_pid_file(File);
         {error, Reason} ->
             error_logger:info_report({?MODULE, write_pid_error, ?LINE, Reason}),
             {error, Reason}
@@ -75,13 +75,16 @@ remove_pid(File) ->
 %%
 %% @doc writes erlang VM pid to file
 %%
-write_file(File) ->
+write_pid_file(File) ->
     Pid = os:getpid(),
     Data = list_to_binary(Pid ++ "\n"),
     case file:write_file(File, Data) of
         ok ->
             ok;
         {error, Reason} ->
-            error_logger:info_report({?MODULE, write_file_error, ?LINE, Reason}),
+            error_logger:info_report({?MODULE, write_pid_file_error, ?LINE,
+                Reason}),
             {error, Reason}
     end.
+
+%%-----------------------------------------------------------------------------
