@@ -33,7 +33,7 @@
 %%% Exports
 %%%----------------------------------------------------------------------------
 
--export([prepare_log/1, need_rotate/2, get_fname/1]).
+-export([prepare_log/1, need_rotate/2, get_fname/1, recreate_log/1]).
 
 %%%----------------------------------------------------------------------------
 %%% Includes
@@ -46,6 +46,21 @@
 
 %%%----------------------------------------------------------------------------
 %%% API
+%%%----------------------------------------------------------------------------
+%%
+%% @doc re-creates log file if it was set and somehow disappeared (e.g.
+%% moved away by external logrotate)
+%%
+-spec recreate_log(string()) -> ok | {error, any()}.
+
+recreate_log(File) ->
+    case error_logger:logfile(filename) of
+        {error, no_log_file} ->
+            ok;
+        Cur_name ->
+            proceed_recreate_log(File, Cur_name)
+    end.
+
 %%%----------------------------------------------------------------------------
 %%
 %% @doc creates log file, shuts down tty log in case of log file
@@ -126,5 +141,18 @@ get_day_of_week(D) when (D >= 1) and (D =< 7) ->
     D;
 get_day_of_week(_) ->
     7.
+
+%%-----------------------------------------------------------------------------
+%%
+%% @doc re-creates log file if it disappeared (e.g. was moved away by external
+%% logrotate)
+%%
+proceed_recreate_log(File, Cur_name) ->
+    case file:read_file_info(Cur_name) of
+        {ok, _Info} ->
+            ok;
+        {error, _Reason} ->
+            prepare_log(File)
+    end.
 
 %%-----------------------------------------------------------------------------
