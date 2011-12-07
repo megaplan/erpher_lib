@@ -33,7 +33,7 @@
 %%% Exports
 %%%----------------------------------------------------------------------------
 
--export([write_pid/1, remove_pid/1]).
+-export([write_pid/1, remove_pid/1, update_debug_level/3]).
 
 %%%----------------------------------------------------------------------------
 %%% Includes
@@ -49,7 +49,10 @@
 %%
 %% @doc creates dir for pid file, writes erlang VM pid to file
 %%
--spec write_pid(string()) -> ok | {error, any()}.
+-spec write_pid(undefined | string()) -> ok | {error, any()}.
+
+write_pid(undefined) ->
+    {error, input_file_undefined};
 
 write_pid(File) ->
     case filelib:ensure_dir(File) of
@@ -68,6 +71,17 @@ write_pid(File) ->
 
 remove_pid(File) ->
     file:delete(File).
+
+%%-----------------------------------------------------------------------------
+%%
+%% @doc replaces or adds new facility/level pair in the debug list 
+%% @since 2011-12-07 17:53
+%%
+-spec update_debug_level(list(), atom(), integer()) -> list().
+
+update_debug_level(Debug, Facility, Level) ->
+    D2 = proplists:delete(Facility, Debug),
+    [{Facility, Level} | D2].
 
 %%%----------------------------------------------------------------------------
 %%% Internal functions
