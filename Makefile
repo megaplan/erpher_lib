@@ -35,7 +35,6 @@ $(EBIN_DIR) :
 	( test -d $(EBIN_DIR) || mkdir -p $(EBIN_DIR) )
 
 dia:
-	PATH=$(HOME)/util/erlang/dist/r14b3/bin:$(PATH) \
 	dialyzer \
 		$(INCLUDES) \
 		--src \
