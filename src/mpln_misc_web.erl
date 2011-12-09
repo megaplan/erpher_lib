@@ -36,7 +36,7 @@
 %%%----------------------------------------------------------------------------
 
 -export([flatten/1, flatten/2, flatten_r/1, flatten/3]).
--export([query_string/1, make_string/1]).
+-export([query_string/1, make_string/1, make_binary/1]).
 
 %%%----------------------------------------------------------------------------
 %%% Includes
@@ -120,7 +120,23 @@ query_string(List) ->
 
 %%-----------------------------------------------------------------------------
 %%
-%% @doc gets binary or list and makes it a string
+%% @doc gets piece of data and makes it a binary
+%% @since 2011-12-09 12:43
+%%
+-spec make_binary(integer() | atom() | string() | binary()) -> binary().
+
+make_binary(X) when is_integer(X) ->
+    list_to_binary(integer_to_list(X));
+make_binary(A) when is_atom(A) ->
+    atom_to_binary(A, latin1);
+make_binary(S) when is_list(S) ->
+    unicode:characters_to_binary(S);
+make_binary(D) ->
+    D.
+
+%%-----------------------------------------------------------------------------
+%%
+%% @doc gets atom, binary or list and makes it a string
 %% @since 2011-08-11 12:56
 %%
 -spec make_string(any()) -> string().
