@@ -38,6 +38,8 @@
 -export([get_time_str_us/0, get_time_str_us/1]).
 -export([get_time_str/0, get_time_str/1]).
 -export([get_time_str2/0, get_time_str2/1]).
+-export([get_time/0, get_time/1, parse_unix_time/1]).
+-export([parse_to_gregorian_seconds/1]).
 
 %%%----------------------------------------------------------------------------
 %%% Includes
@@ -52,13 +54,50 @@
 %%% API
 %%%----------------------------------------------------------------------------
 %%
+%% @doc converts input string with unix time to integer
+%% @since 2011-12-20 19:39
+%%
+-spec parse_unix_time(string()) -> non_neg_integer().
+
+parse_unix_time(Str) ->
+    erlang:list_to_integer(Str).
+
+%%-----------------------------------------------------------------------------
+%%
+%% @doc converts input string with unix time to integer and corrects it
+%% to gregorian seconds
+%% @since 2011-12-20 19:47
+%%
+parse_to_gregorian_seconds(Str) ->
+    N = parse_unix_time(Str),
+    T0 = calendar:datetime_to_gregorian_seconds({{1970,1,1},{0,0,0}}),
+    T0 + N.
+
+%%-----------------------------------------------------------------------------
+%%
+%% @doc returns time in gregorian seconds for current or given time
+%% @since 2011-12-20 19:21
+%%
+-spec get_time() -> non_neg_integer().
+
+get_time() ->
+    get_time(now()).
+
+
+-spec get_time(tuple()) -> non_neg_integer().
+
+get_time(Now) ->
+    calendar:datetime_to_gregorian_seconds(calendar:now_to_local_time(Now)).
+
+%%-----------------------------------------------------------------------------
+%%
 %% @doc returns time string in gregorian seconds for current time
 %% @since 2011-07-15
 %%
 -spec get_ts() -> string().
 
 get_ts() ->
-    Str = calendar:datetime_to_gregorian_seconds(calendar:local_time()),
+    Str = get_time(),
     integer_to_list(Str).
 
 %%-----------------------------------------------------------------------------
