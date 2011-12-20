@@ -3,13 +3,13 @@
     {id, "erpher_lib"},
     {vsn, "1.3"},
     {modules, [
-		mpln_misc_conf,
-		mpln_misc_log,
-		mpln_misc_run,
-		mpln_misc_time,
-		mpln_misc_web,
-		mpln_node_ctl,
-		mpln_p_debug
+        mpln_misc_conf,
+        mpln_misc_log,
+        mpln_misc_run,
+        mpln_misc_time,
+        mpln_misc_web,
+        mpln_node_ctl,
+        mpln_p_debug
     ]},
     {registered, []},
     {applications, [kernel, stdlib]}
