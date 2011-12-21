@@ -64,6 +64,15 @@ parse_unix_time(Str) ->
 
 %%-----------------------------------------------------------------------------
 %%
+%% @doc converts gregorian seconds to string representation
+%% @since 2011-12-21 14:12
+%%
+gregorian_seconds_str(S) ->
+    D = calendar:gregorian_seconds_to_datetime(S),
+    make_str_int(D).
+
+%%-----------------------------------------------------------------------------
+%%
 %% @doc converts input string with unix time to integer and corrects it
 %% to gregorian seconds
 %% @since 2011-12-20 19:47

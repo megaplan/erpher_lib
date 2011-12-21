@@ -125,6 +125,10 @@ query_string(List) ->
 %%
 -spec make_binary(integer() | atom() | string() | binary()) -> binary().
 
+make_binary(R) when is_reference(R) ->
+    list_to_binary(erlang:ref_to_list(R));
+make_binary(P) when is_pid(P) ->
+    list_to_binary(erlang:pid_to_list(P));
 make_binary(X) when is_integer(X) ->
     list_to_binary(integer_to_list(X));
 make_binary(A) when is_atom(A) ->
@@ -141,6 +145,10 @@ make_binary(D) ->
 %%
 -spec make_string(any()) -> string().
 
+make_string(R) when is_reference(R) ->
+    erlang:ref_to_list(R);
+make_string(P) when is_pid(P) ->
+    erlang:pid_to_list(P);
 make_string(X) when is_integer(X) ->
     integer_to_list(X);
 make_string(B) when is_binary(B) ->
