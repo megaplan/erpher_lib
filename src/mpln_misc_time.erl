@@ -39,7 +39,10 @@
 -export([get_time_str/0, get_time_str/1]).
 -export([get_time_str2/0, get_time_str2/1]).
 -export([get_time/0, get_time/1, parse_unix_time/1]).
+-export([get_gmt_time/0, get_gmt_time/1]).
 -export([parse_to_gregorian_seconds/1]).
+-export([gregorian_seconds_str/1]).
+-export([make_gregorian_seconds/1, make_gmt_gregorian_seconds/1]).
 
 %%%----------------------------------------------------------------------------
 %%% Includes
@@ -67,9 +70,30 @@ parse_unix_time(Str) ->
 %% @doc converts gregorian seconds to string representation
 %% @since 2011-12-21 14:12
 %%
+-spec gregorian_seconds_str(non_neg_integer()) -> string().
+
 gregorian_seconds_str(S) ->
     D = calendar:gregorian_seconds_to_datetime(S),
     make_str_int(D).
+
+%%-----------------------------------------------------------------------------
+%%
+%% @doc converts unix time to gregorian seconds
+%% @since 2011-12-21 15:45
+%%
+-spec make_gregorian_seconds(non_neg_integer()) -> non_neg_integer().
+
+make_gregorian_seconds(Time) ->
+    Time + calendar:datetime_to_gregorian_seconds(
+        calendar:now_to_local_time({0,0,0})
+        ).
+
+-spec make_gmt_gregorian_seconds(non_neg_integer()) -> non_neg_integer().
+
+make_gmt_gregorian_seconds(Time) ->
+    Time + calendar:datetime_to_gregorian_seconds(
+        calendar:now_to_universal_time({0,0,0})
+        ).
 
 %%-----------------------------------------------------------------------------
 %%
@@ -77,10 +101,11 @@ gregorian_seconds_str(S) ->
 %% to gregorian seconds
 %% @since 2011-12-20 19:47
 %%
+-spec parse_to_gregorian_seconds(string()) -> non_neg_integer().
+
 parse_to_gregorian_seconds(Str) ->
     N = parse_unix_time(Str),
-    T0 = calendar:datetime_to_gregorian_seconds({{1970,1,1},{0,0,0}}),
-    T0 + N.
+    make_gregorian_seconds(N).
 
 %%-----------------------------------------------------------------------------
 %%
@@ -97,6 +122,18 @@ get_time() ->
 
 get_time(Now) ->
     calendar:datetime_to_gregorian_seconds(calendar:now_to_local_time(Now)).
+
+-spec get_gmt_time() -> non_neg_integer().
+
+get_gmt_time() ->
+    get_gmt_time(now()).
+
+
+-spec get_gmt_time(tuple()) -> non_neg_integer().
+
+get_gmt_time(Now) ->
+    calendar:datetime_to_gregorian_seconds(
+        calendar:now_to_universal_time(Now)).
 
 %%-----------------------------------------------------------------------------
 %%

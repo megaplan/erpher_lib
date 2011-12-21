@@ -37,6 +37,7 @@
 
 -export([flatten/1, flatten/2, flatten_r/1, flatten/3]).
 -export([query_string/1, make_string/1, make_binary/1]).
+-export([sanitate_numbers/1, sanitate_number/1]).
 
 %%%----------------------------------------------------------------------------
 %%% Includes
@@ -117,6 +118,23 @@ query_string(List) ->
     end,
     List_str = lists:map(F, List),
     string:join(List_str, "&").
+
+%%-----------------------------------------------------------------------------
+%%
+%% @doc ensure the items are integers
+%% @since 2011-12-21 15:38
+%%
+sanitate_numbers(List) ->
+    [sanitate_number(X) || X <- List].
+
+%%-----------------------------------------------------------------------------
+%%
+%% @doc ensure the item is an integer
+%% @since 2011-12-21 15:38
+%%
+sanitate_number(N) when is_integer(N) -> N;
+sanitate_number(N) when is_list(N)    -> list_to_integer(N);
+sanitate_number(N) when is_binary(N)  -> list_to_integer(binary_to_list(N)).
 
 %%-----------------------------------------------------------------------------
 %%
