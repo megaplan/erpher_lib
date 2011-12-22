@@ -43,7 +43,8 @@
 -export([parse_to_gregorian_seconds/1]).
 -export([gregorian_seconds_str/1]).
 -export([make_gregorian_seconds/1, make_gmt_gregorian_seconds/1]).
--export([make_short_str/2]).
+-export([make_short_str/2, make_short_str2/2]).
+-export([make_str2_int/1]).
 
 %%%----------------------------------------------------------------------------
 %%% Includes
@@ -58,8 +59,8 @@
 %%% API
 %%%----------------------------------------------------------------------------
 %%
-%% @doc creates a string representation of a datetime that has been cut up to
-%% the given interval
+%% @doc creates a short string representation of a datetime that has been
+%% cut up to the given interval
 %% @since 2011-12-22 13:48
 %%
 -spec make_short_str(t_datetime(), minute | hour | day | month)
@@ -77,6 +78,27 @@ make_short_str({{Y, M, D}, _}, day) ->
 
 make_short_str({{Y, M, _}, _}, month) ->
     make_short_str_format("~4.10.0B~2.10.0B~2.10.0B-~2.10.0B", [Y, M]).
+
+%%-----------------------------------------------------------------------------
+%%
+%% @doc creates a full string representation (ymd-hms) of a datetime that
+%% has been cut up to the given interval
+%% @since 2011-12-22 13:48
+%%
+-spec make_short_str2(t_datetime(), minute | hour | day | month)
+    -> string().
+
+make_short_str2({D, {H, Min, _}}, minute) ->
+    make_str2_int({D, {H, Min, 0}});
+
+make_short_str2({D, {H, _, _}}, hour) ->
+    make_str2_int({D, {H, 0, 0}});
+
+make_short_str2({D, _}, day) ->
+    make_str2_int({D, {0, 0, 0}});
+
+make_short_str2({{Y, M, _}, _}, month) ->
+    make_str2_int({{Y, M, 1}, {0, 0, 0}}).
 
 %%-----------------------------------------------------------------------------
 %%
@@ -234,6 +256,16 @@ get_time_str2(Now) ->
 
 %%-----------------------------------------------------------------------------
 %%
+%% @doc returns time string (ymd-hms) for given time
+%% @since 2011-07-15
+%%
+-spec make_str2_int(t_datetime()) -> string().
+
+make_str2_int(DateTime) ->
+    make_str("~4.10.0B~2.10.0B~2.10.0B-~2.10.0B~2.10.0B~2.10.0B", DateTime).
+
+%%-----------------------------------------------------------------------------
+%%
 %% @doc returns binary filled by current time to be used as uuid
 %% @since 2011-07-15
 %%
@@ -271,15 +303,6 @@ make_str_float(DateTime) ->
 
 make_str_int(DateTime) ->
     make_str("~4.10.0B-~2.10.0B-~2.10.0B ~2.10.0B:~2.10.0B:~2.10.0B", DateTime).
-
-%%
-%% @doc returns time string (ymd-hms) for given time
-%% @since 2011-07-15
-%%
--spec make_str2_int(t_datetime()) -> string().
-
-make_str2_int(DateTime) ->
-    make_str("~4.10.0B~2.10.0B~2.10.0B-~2.10.0B~2.10.0B~2.10.0B", DateTime).
 
 %%
 %% @doc returns time string (y-m-d h:m:s) according to the given format and
