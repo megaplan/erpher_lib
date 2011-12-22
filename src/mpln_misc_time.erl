@@ -43,6 +43,7 @@
 -export([parse_to_gregorian_seconds/1]).
 -export([gregorian_seconds_str/1]).
 -export([make_gregorian_seconds/1, make_gmt_gregorian_seconds/1]).
+-export([make_short_str/2]).
 
 %%%----------------------------------------------------------------------------
 %%% Includes
@@ -56,6 +57,28 @@
 %%%----------------------------------------------------------------------------
 %%% API
 %%%----------------------------------------------------------------------------
+%%
+%% @doc creates a string representation of a datetime that has been cut up to
+%% the given interval
+%% @since 2011-12-22 13:48
+%%
+-spec make_short_str(t_datetime(), minute | hour | day | month)
+    -> string().
+
+make_short_str({{Y, M, D}, {H, Min, _}}, minute) ->
+    make_short_str_format("~4.10.0B~2.10.0B~2.10.0B-~2.10.0B~2.10.0B",
+        [Y, M, D, H, Min]);
+
+make_short_str({{Y, M, D}, {H, _, _}}, hour) ->
+    make_short_str_format("~4.10.0B~2.10.0B~2.10.0B-~2.10.0B", [Y, M, D, H]);
+
+make_short_str({{Y, M, D}, _}, day) ->
+    make_short_str_format("~4.10.0B~2.10.0B~2.10.0B", [Y, M, D]);
+
+make_short_str({{Y, M, _}, _}, month) ->
+    make_short_str_format("~4.10.0B~2.10.0B~2.10.0B-~2.10.0B", [Y, M]).
+
+%%-----------------------------------------------------------------------------
 %%
 %% @doc converts input string with unix time to integer
 %% @since 2011-12-20 19:39
@@ -223,6 +246,14 @@ uuid() ->
 %%%----------------------------------------------------------------------------
 %%% Internal functions
 %%%----------------------------------------------------------------------------
+%%
+%% @doc returns time string according to the given format and datetime
+%%
+make_short_str_format(Format, List) ->
+    Str = io_lib:format(Format, List),
+    lists:flatten(Str).
+
+%%-----------------------------------------------------------------------------
 %%
 %% @doc returns time string (y-m-d h:m:s.us) for given time
 %% @since 2011-07-15
