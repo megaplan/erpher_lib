@@ -38,6 +38,7 @@
 -export([flatten/1, flatten/2, flatten_r/1, flatten/3]).
 -export([query_string/1, make_string/1, make_binary/1]).
 -export([sanitate_numbers/1, sanitate_number/1]).
+-export([make_proplist_binary/1, make_term_binary/1]).
 
 %%%----------------------------------------------------------------------------
 %%% Includes
@@ -138,10 +139,38 @@ sanitate_number(N) when is_binary(N)  -> list_to_integer(binary_to_list(N)).
 
 %%-----------------------------------------------------------------------------
 %%
+%% @doc takes list of {key, val} tuples and makes values binary
+%% @since 2011-12-23 15:52
+%%
+make_proplist_binary(List) ->
+    F = fun ({Key, Val}) ->
+                {Key, make_binary(Val)};
+            (Item) ->
+                Item
+    end,
+    lists:map(F, List).
+
+%%-----------------------------------------------------------------------------
+make_term_binary(D) when is_reference(D) ->
+    make_binary(D);
+make_term_binary(D) when is_pid(D) ->
+    make_binary(D);
+make_term_binary(D) when is_integer(D) ->
+    make_binary(D);
+make_term_binary(D) when is_atom(D) ->
+    make_binary(D);
+make_term_binary(D) when is_list(D) ->
+    make_binary(D);
+make_term_binary(D) ->
+    make_binary(io_lib:format("~p", [D])).
+
+%%-----------------------------------------------------------------------------
+%%
 %% @doc gets piece of data and makes it a binary
 %% @since 2011-12-09 12:43
 %%
--spec make_binary(integer() | atom() | string() | binary()) -> binary().
+-spec make_binary(reference() | pid() | integer() | atom() | string()
+    | binary()) -> binary().
 
 make_binary(R) when is_reference(R) ->
     list_to_binary(erlang:ref_to_list(R));
