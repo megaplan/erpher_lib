@@ -42,6 +42,7 @@
 -export([get_gmt_time/0, get_gmt_time/1]).
 -export([parse_to_gregorian_seconds/1]).
 -export([gregorian_seconds_str/1]).
+-export([make_gregorian_seconds/0, make_gmt_gregorian_seconds/0]).
 -export([make_gregorian_seconds/1, make_gmt_gregorian_seconds/1]).
 -export([make_short_str/2, make_short_str2/2]).
 -export([make_str2_int/1]).
@@ -128,16 +129,28 @@ gregorian_seconds_str(S) ->
 %%
 -spec make_gregorian_seconds(non_neg_integer()) -> non_neg_integer().
 
+make_gregorian_seconds() ->
+    calendar:datetime_to_gregorian_seconds(
+        calendar:now_to_local_time(now())).
+
 make_gregorian_seconds(Time) ->
-    Time + calendar:datetime_to_gregorian_seconds(
-        calendar:now_to_local_time({0,0,0})
+    S = Time rem 1000000,
+    M = trunc(Time / 1000000),
+    calendar:datetime_to_gregorian_seconds(
+        calendar:now_to_local_time({M, S, 0})
         ).
 
 -spec make_gmt_gregorian_seconds(non_neg_integer()) -> non_neg_integer().
 
+make_gmt_gregorian_seconds() ->
+    calendar:datetime_to_gregorian_seconds(
+        calendar:now_to_universal_time(now())).
+
 make_gmt_gregorian_seconds(Time) ->
-    Time + calendar:datetime_to_gregorian_seconds(
-        calendar:now_to_universal_time({0,0,0})
+    S = Time rem 1000000,
+    M = trunc(Time / 1000000),
+    calendar:datetime_to_gregorian_seconds(
+        calendar:now_to_universal_time({M, S, 0})
         ).
 
 %%-----------------------------------------------------------------------------
