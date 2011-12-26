@@ -39,6 +39,7 @@
 -export([query_string/1, make_string/1, make_binary/1]).
 -export([sanitate_numbers/1, sanitate_number/1]).
 -export([make_proplist_binary/1, make_term_binary/1]).
+-export([sub_bin/1, sub_bin/2]).
 
 %%%----------------------------------------------------------------------------
 %%% Includes
@@ -151,6 +152,26 @@ make_proplist_binary(List) ->
     lists:map(F, List).
 
 %%-----------------------------------------------------------------------------
+%%
+%% @doc returns part of binary
+%% @since 2011-12-26 18:45
+%%
+sub_bin(Bin) ->
+    sub_bin(Bin, 1024).
+
+sub_bin(Bin, Len) ->
+    if  byte_size(Bin) > Len ->
+            {Beg, _} = split_binary(Bin, Len),
+            Beg;
+        true ->
+            Bin
+    end.
+
+%%-----------------------------------------------------------------------------
+%%
+%% @doc converts any term to binary
+%% @since 2011-12-23 12:05
+%%
 make_term_binary(D) when is_reference(D) ->
     make_binary(D);
 make_term_binary(D) when is_pid(D) ->
