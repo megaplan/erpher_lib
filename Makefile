@@ -9,7 +9,7 @@ EBIN_DIR := ebin
 HTML_DOC_DIR = doc/html
 ERLC_OPTS = +debug_info -DTEST
 ERLC := erlc $(ERLC_OPTS)
-VSN=1.3
+VSN=1.4
 APP_NAME=erpher_lib
 LICENSE=MIT
 

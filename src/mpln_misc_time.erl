@@ -46,6 +46,7 @@
 -export([make_gregorian_seconds/1, make_gmt_gregorian_seconds/1]).
 -export([make_short_str/2, make_short_str2/2]).
 -export([make_str2_int/1]).
+-export([short_time/1, short_time/2]).
 
 %%%----------------------------------------------------------------------------
 %%% Includes
@@ -59,6 +60,31 @@
 %%%----------------------------------------------------------------------------
 %%% API
 %%%----------------------------------------------------------------------------
+%%
+%% @doc creates time truncated up to the step
+%% @since 2011-12-28 11:14
+%%
+short_time(Step) ->
+    short_time(now(), Step).
+
+short_time(Now, Step) ->
+    {{Y, M, D}, {H, Min, _S}} = Datetime = calendar:now_to_local_time(Now),
+    case Step of
+        minute ->
+            {{Y, M, D}, {H, Min, 0}};
+        hour ->
+            {{Y, M, D}, {H, 0, 0}};
+        day ->
+            {{Y, M, D}, {0, 0, 0}};
+        month ->
+            {{Y, M, 1}, {0, 0, 0}};
+        year ->
+            {{Y, 1, 1}, {0, 0, 0}};
+        _ ->
+            Datetime
+    end.
+
+%%-----------------------------------------------------------------------------
 %%
 %% @doc creates a short string representation of a datetime that has been
 %% cut up to the given interval

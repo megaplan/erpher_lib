@@ -39,6 +39,7 @@
 -export([query_string/1, make_string/1, make_binary/1]).
 -export([sanitate_numbers/1, sanitate_number/1]).
 -export([make_proplist_binary/1, make_term_binary/1]).
+-export([make_term_string/1]).
 -export([sub_bin/1, sub_bin/2]).
 
 %%%----------------------------------------------------------------------------
@@ -205,6 +206,24 @@ make_binary(S) when is_list(S) ->
     unicode:characters_to_binary(S);
 make_binary(D) ->
     D.
+
+%%-----------------------------------------------------------------------------
+%%
+%% @doc converts any term to string
+%% @since 2011-12-28 13:37
+%%
+make_term_string(D) when is_reference(D) ->
+    make_string(D);
+make_term_string(D) when is_pid(D) ->
+    make_string(D);
+make_term_string(D) when is_integer(D) ->
+    make_string(D);
+make_term_string(D) when is_binary(D) ->
+    make_string(D);
+make_term_string(D) when is_atom(D) ->
+    make_string(D);
+make_term_string(D) ->
+    make_string(io_lib:format("~p", [D])).
 
 %%-----------------------------------------------------------------------------
 %%
