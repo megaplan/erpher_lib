@@ -1,8 +1,9 @@
 {application, erpher_lib, [
     {description, "erpher_lib"},
     {id, "erpher_lib"},
-    {vsn, "1.4"},
+    {vsn, "1.5"},
     {modules, [
+        estat_misc,
         mpln_misc_conf,
         mpln_misc_log,
         mpln_misc_run,
