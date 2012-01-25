@@ -35,6 +35,7 @@
 
 -export([make_stat_cur_info/2]).
 -export([make_stat_t_info/2]).
+-export([make_interval_stat_text/1, make_interval_stat/2]).
 
 %%%----------------------------------------------------------------------------
 %%% Defines
@@ -45,6 +46,29 @@
 %%%----------------------------------------------------------------------------
 %%% API
 %%%----------------------------------------------------------------------------
+%%
+%% @doc gets input list of {tag, {dict, dict, dict}} tuples. Transforms
+%% every dict to a list of {new_tag, data} tuples, where new_tag can be
+%% time + new_tag or just any new_tag
+%% @since 2012-01-25 14:40
+%%
+-spec make_interval_stat_text([{atom(), {dict(), dict(), dict()}}]) -> string().
+
+make_interval_stat_text(List) ->
+    make_interval_stat(text, List).
+
+-spec make_interval_stat(text | html, [{atom(), {dict(), dict(), dict()}}]) ->
+                                string().
+
+make_interval_stat(Type, List) ->
+    F = fun(X, Acc) ->
+                Res = make_stat_one_source(Type, X),
+                [Res | Acc]
+        end,
+    Res = lists:foldl(F, [], List),
+    lists:flatten(Res).
+
+%%-----------------------------------------------------------------------------
 %%
 %% @doc returns time statistic
 %% @since 2012-01-23 18:16
@@ -207,5 +231,51 @@ make_list(List) ->
                 io_lib:format("~p: ~p~n", [K, V])
         end,
     lists:map(F, List).
+
+%%-----------------------------------------------------------------------------
+%%
+%% @doc gets a tag and a dict and creates a list of text {key, val} items
+%% from the dict
+%%
+-spec make_one_interval_stat(text | html, atom(), dict()) -> list().
+
+make_one_interval_stat(text, Tag, Data) ->
+    List = get_stat_t_info(Data),
+    Text = make_list(List),
+    Tag_str = mpln_misc_web:make_term_string(Tag),
+    [Tag_str, "\n", Text, "\n\n"].
+
+%%-----------------------------------------------------------------------------
+%%
+%% @doc converts input tag to string
+%%
+make_one_interval_tag(text, Tag) ->
+    mpln_misc_web:make_term_string(Tag).
+
+%%
+%% @doc returns text separator as a string
+%%
+make_one_interval_sep(text) ->
+    "\n".
+
+%%-----------------------------------------------------------------------------
+%%
+%% @doc gets type, tag and dicts of stat data and creates text containing
+%% several items of pretty printed data
+%%
+make_stat_one_source(Type, {Tag, {Day, Hour, Min}}) ->
+    F = fun({Cur_tag, Cur_dat}, Acc) ->
+                Res = make_one_interval_stat(Type, Cur_tag, Cur_dat),
+                [Res | Acc]
+        end,
+    Res = lists:foldl(F, [],
+                      [
+                       {day, Day},
+                       {hour, Hour},
+                       {min, Min}
+                      ]),
+    Tag_str = make_one_interval_tag(Type, Tag),
+    Sep_str = make_one_interval_sep(Type),
+    [Tag_str, Sep_str, Res, Sep_str].
 
 %%-----------------------------------------------------------------------------
