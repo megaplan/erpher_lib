@@ -34,6 +34,7 @@
 %%%----------------------------------------------------------------------------
 
 -export([write_pid/1, remove_pid/1, update_debug_level/3]).
+-export([cancel_timer/1]).
 
 %%%----------------------------------------------------------------------------
 %%% Includes
@@ -82,6 +83,19 @@ remove_pid(File) ->
 update_debug_level(Debug, Facility, Level) ->
     D2 = proplists:delete(Facility, Debug),
     [{Facility, Level} | D2].
+
+%%-----------------------------------------------------------------------------
+%%
+%% @doc cancels timer
+%% @since 2012-01-26 17:27
+%%
+-spec cancel_timer(undefined | reference()) -> ok.
+
+cancel_timer(undefined) ->
+    ok;
+
+cancel_timer(Ref) ->
+    erlang:cancel_timer(Ref).
 
 %%%----------------------------------------------------------------------------
 %%% Internal functions
