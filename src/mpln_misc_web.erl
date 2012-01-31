@@ -41,6 +41,7 @@
 -export([make_proplist_binary/1, make_term_binary/1]).
 -export([make_term_string/1]).
 -export([sub_bin/1, sub_bin/2]).
+-export([make_term_short_bin/1, make_term_short_bin/2]).
 
 %%%----------------------------------------------------------------------------
 %%% Includes
@@ -151,6 +152,20 @@ make_proplist_binary(List) ->
                 Item
     end,
     lists:map(F, List).
+
+%%-----------------------------------------------------------------------------
+%%
+%% @doc converts input data to a binary, returns the beginning part of it
+%% @since 2012-01-27 15:41
+%%
+
+make_term_short_bin(Data) ->
+    Bin = mpln_misc_web:make_term_binary(Data),
+    mpln_misc_web:sub_bin(Bin).
+
+make_term_short_bin(Data, Len) ->
+    Bin = mpln_misc_web:make_term_binary(Data),
+    mpln_misc_web:sub_bin(Bin, Len).
 
 %%-----------------------------------------------------------------------------
 %%
