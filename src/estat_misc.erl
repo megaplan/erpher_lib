@@ -36,6 +36,7 @@
 -export([make_stat_cur_info/2]).
 -export([make_stat_t_info/2]).
 -export([make_interval_stat_text/1, make_interval_stat/2]).
+-export([add_timed_stat/4]).
 
 %%%----------------------------------------------------------------------------
 %%% Defines
@@ -46,6 +47,22 @@
 %%%----------------------------------------------------------------------------
 %%% API
 %%%----------------------------------------------------------------------------
+%%
+%% @doc increments counter for time (shortened to time step) and tag
+%% in ets table
+%% @since 2012-02-02 13:32
+%%
+add_timed_stat(Table, Step, Time, Tag) ->
+    Tm = mpln_misc_time:short_time(Time, Step),
+    Key = {Tm, Tag},
+    case ets:lookup(Table, Key) of
+        [] ->
+            ets:insert(Table, {Key, 1});
+        [{_, N}] ->
+            ets:insert(Table, {Key, N+1})
+    end.
+
+%%-----------------------------------------------------------------------------
 %%
 %% @doc gets input list of {tag, {dict, dict, dict}} tuples. Transforms
 %% every dict to a list of {new_tag, data} tuples, where new_tag can be
