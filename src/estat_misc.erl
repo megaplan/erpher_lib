@@ -36,7 +36,7 @@
 -export([make_stat_cur_info/2]).
 -export([make_stat_t_info/2]).
 -export([make_interval_stat_text/1, make_interval_stat/2]).
--export([add_timed_stat/4]).
+-export([add_timed_stat/4, set_max_timed_stat/5]).
 
 %%%----------------------------------------------------------------------------
 %%% Defines
@@ -47,6 +47,23 @@
 %%%----------------------------------------------------------------------------
 %%% API
 %%%----------------------------------------------------------------------------
+%%
+%% @doc increments counter for time (shortened to time step) and tag
+%% in ets table
+%% @since 2012-02-02 13:32
+%%
+set_max_timed_stat(Table, Step, Time, Tag, Val) ->
+    Tm = mpln_misc_time:short_time(Time, Step),
+    Key = {Tm, Tag},
+    case ets:lookup(Table, Key) of
+        [] ->
+            ets:insert(Table, {Key, Val});
+        [{_, N}] ->
+            Max = erlang:max(N, Val),
+            ets:insert(Table, {Key, Max})
+    end.
+
+%%-----------------------------------------------------------------------------
 %%
 %% @doc increments counter for time (shortened to time step) and tag
 %% in ets table
