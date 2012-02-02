@@ -37,6 +37,7 @@
 -export([make_stat_t_info/2]).
 -export([make_interval_stat_text/1, make_interval_stat/2]).
 -export([add_timed_stat/4, set_max_timed_stat/5]).
+-export([make_joined_list/1]).
 
 %%%----------------------------------------------------------------------------
 %%% Defines
@@ -47,6 +48,32 @@
 %%%----------------------------------------------------------------------------
 %%% API
 %%%----------------------------------------------------------------------------
+make_joined_list(List) ->
+    D = dict:new(),
+    F = fun ({{Time, {Tag, 'work'}}, V1, V2}, Acc) ->
+                Key = {Time, Tag},
+                case dict:find(Key, Acc) of
+                    error ->
+                        dict:store(Key, {V1, V2, -1, -1}, Acc);
+                    {ok, {_Pw1, _Pw2, Pq1, Pq2}} ->
+                        dict:store(Key, {V1, V2, Pq1, Pq2}, Acc)
+                end;
+            ({{Time, {Tag, 'queued'}}, V1, V2}, Acc) ->
+                Key = {Time, Tag},
+                case dict:find(Key, Acc) of
+                    error ->
+                        dict:store(Key, {-1, -1, V1, V2}, Acc);
+                    {ok, {Pw1, Pw2, _Pq1, _Pq2}} ->
+                        dict:store(Key, {Pw1, Pw2, V1, V2}, Acc)
+                end;
+            (_, Acc) ->
+                Acc
+    end,
+    D2 = lists:foldl(F, D, List),
+    lists:sort(dict:to_list(D2))
+.
+
+%%-----------------------------------------------------------------------------
 %%
 %% @doc increments counter for time (shortened to time step) and tag
 %% in ets table. Stored data: {key, cur, max}
