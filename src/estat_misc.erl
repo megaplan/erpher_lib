@@ -49,7 +49,7 @@
 %%%----------------------------------------------------------------------------
 %%
 %% @doc increments counter for time (shortened to time step) and tag
-%% in ets table
+%% in ets table. Stored data: {key, cur, max}
 %% @since 2012-02-02 13:32
 %%
 set_max_timed_stat(Table, Step, Time, Tag, Val) ->
@@ -57,10 +57,10 @@ set_max_timed_stat(Table, Step, Time, Tag, Val) ->
     Key = {Tm, Tag},
     case ets:lookup(Table, Key) of
         [] ->
-            ets:insert(Table, {Key, Val});
-        [{_, N}] ->
-            Max = erlang:max(N, Val),
-            ets:insert(Table, {Key, Max})
+            ets:insert(Table, {Key, Val, Val});
+        [{_Key, _Prev_n, Prev_max}] ->
+            Max = erlang:max(Prev_max, Val),
+            ets:insert(Table, {Key, Val, Max})
     end.
 
 %%-----------------------------------------------------------------------------
