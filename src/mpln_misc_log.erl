@@ -54,7 +54,10 @@
 -spec recreate_log(string()) -> ok | {error, any()}.
 
 recreate_log(File) ->
-    case error_logger:logfile(filename) of
+    % catch here for timeouts that happen under host's heavy load
+    case catch error_logger:logfile(filename) of
+        {'EXIT', _} ->
+            ok;
         {error, no_log_file} ->
             ok;
         Cur_name ->
