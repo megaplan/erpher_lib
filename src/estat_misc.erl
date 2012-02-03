@@ -38,6 +38,7 @@
 -export([make_interval_stat_text/1, make_interval_stat/2]).
 -export([add_timed_stat/4, set_max_timed_stat/5]).
 -export([make_joined_list/1]).
+-export([clean_timed_stat/2]).
 
 %%%----------------------------------------------------------------------------
 %%% Defines
@@ -48,6 +49,31 @@
 %%%----------------------------------------------------------------------------
 %%% API
 %%%----------------------------------------------------------------------------
+%%
+%% @doc cleans stat storage (ets) from unnecessary items
+%% @since 2012-02-03 15:26
+%%
+-spec clean_timed_stat(atom(), non_neg_integer()) -> ok.
+
+clean_timed_stat(Tab, Limit) ->
+    Keys = find_time_part_keys(Tab), % sorted list
+    Len = length(Keys),
+        if Len > Limit ->
+                Delta = Len - Limit,
+                {Del, _} = lists:split(Delta, Keys),
+                del_timed_items(Tab, Del);
+           true ->
+                ok
+        end.
+
+%%-----------------------------------------------------------------------------
+%%
+%% @doc joins several lists with same time and different tags into one
+%% list with common time
+%% @since 2012-02-02 16:32
+%%
+-spec make_joined_list(list()) -> list().
+
 make_joined_list(List) ->
     D = dict:new(),
     F = fun ({{Time, {Tag, 'work'}}, V1, V2}, Acc) ->
@@ -79,6 +105,9 @@ make_joined_list(List) ->
 %% in ets table. Stored data: {key, cur, max}
 %% @since 2012-02-02 13:32
 %%
+-spec set_max_timed_stat(atom(), 'hour' | 'minute', tuple(), any(),
+                         non_neg_integer()) -> true.
+
 set_max_timed_stat(Table, Step, Time, Tag, Val) ->
     Tm = mpln_misc_time:short_time(Time, Step),
     Key = {Tm, Tag},
@@ -96,6 +125,8 @@ set_max_timed_stat(Table, Step, Time, Tag, Val) ->
 %% in ets table
 %% @since 2012-02-02 13:32
 %%
+-spec add_timed_stat(atom(), 'hour' | 'minute', tuple(), any()) -> true.
+
 add_timed_stat(Table, Step, Time, Tag) ->
     Tm = mpln_misc_time:short_time(Time, Step),
     Key = {Tm, Tag},
@@ -338,5 +369,67 @@ make_stat_one_source(Type, {Tag, {Day, Hour, Min}}) ->
     Tag_str = make_one_interval_tag(Type, Tag),
     Sep_str = make_one_interval_sep(Type),
     [Tag_str, Sep_str, Res, Sep_str].
+
+%%-----------------------------------------------------------------------------
+%%
+%% @doc removes items with given time from a storage
+%%
+-spec del_timed_items(atom(), list()) -> ok.
+
+del_timed_items(Tab, List) ->
+    L2 = [{X, true} || X <- List],
+    Dict = dict:from_list(L2),
+    Key_del = find_time_full_keys(Tab, Dict),
+    [ets:delete(Tab, X) || X <- Key_del],
+    ok.
+
+-spec find_time_full_keys(atom(), dict()) -> list().
+
+%%
+%% @doc extracts full keys for given times from a storage
+%%
+find_time_full_keys(Tab, Dict) ->
+    % ets:insert(Table, {Key, Val, Val});
+    % ets:insert(Table, {Key, 1});
+    F = fun({{Time, _Tag} = Key, _}, Acc) ->
+                upd_full_keys_data(Dict, Acc, Time, Key);
+           ({{Time, _Tag} = Key, _, _}, Acc) ->
+                upd_full_keys_data(Dict, Acc, Time, Key);
+           (_, Acc) ->
+                Acc
+        end,
+    Key_data = ets:foldl(F, dict:new(), Tab),
+    dict:fetch_keys(Key_data).
+
+%%
+%% @doc stores input key into dictionary to ensure uniqueness
+%%
+-spec upd_full_keys_data(dict(), dict(), tuple(), tuple()) -> dict().
+
+upd_full_keys_data(Dict, Acc, Time, Key) ->
+    case dict:find(Time, Dict) of
+        {ok, _} ->
+            dict:store(Key, true, Acc);
+        _ ->
+            Acc
+    end.
+
+%%
+%% @doc extracts time part of a keys from a storage
+%%
+-spec find_time_part_keys(atom()) -> list().
+
+find_time_part_keys(Tab) ->
+    % ets:insert(Table, {Key, Val, Val});
+    % ets:insert(Table, {Key, 1});
+    F = fun({{Time, _Tag}, _}, Acc) ->
+                dict:store(Time, true, Acc);
+           ({{Time, _Tag}, _, _}, Acc) ->
+                dict:store(Time, true, Acc);
+           (_, Acc) ->
+                Acc
+        end,
+    Dat = ets:foldl(F, dict:new(), Tab),
+    lists:sort(dict:fetch_keys(Dat)).
 
 %%-----------------------------------------------------------------------------
