@@ -1,7 +1,7 @@
 {application, erpher_lib, [
     {description, "erpher_lib"},
     {id, "erpher_lib"},
-    {vsn, "1.5"},
+    {vsn, "1.6"},
     {modules, [
         estat_misc,
         mpln_misc_conf,

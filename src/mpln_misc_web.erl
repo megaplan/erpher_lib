@@ -39,9 +39,11 @@
 -export([query_string/1, make_string/1, make_binary/1]).
 -export([sanitate_numbers/1, sanitate_number/1]).
 -export([make_proplist_binary/1, make_term_binary/1]).
+-export([make_term2_binary/1]).
 -export([make_term_string/1]).
 -export([sub_bin/1, sub_bin/2]).
 -export([make_term_short_bin/1, make_term_short_bin/2]).
+-export([make_term2_short_bin/1, make_term2_short_bin/2]).
 
 %%%----------------------------------------------------------------------------
 %%% Includes
@@ -159,6 +161,18 @@ make_proplist_binary(List) ->
 %% @since 2012-01-27 15:41
 %%
 
+-spec make_term2_short_bin(any()) -> binary().
+
+make_term2_short_bin(Data) ->
+    Bin = make_term2_binary(Data),
+    sub_bin(Bin).
+
+make_term2_short_bin(Data, Len) ->
+    Bin = make_term2_binary(Data),
+    sub_bin(Bin, Len).
+
+-spec make_term_short_bin(any()) -> binary().
+
 make_term_short_bin(Data) ->
     Bin = mpln_misc_web:make_term_binary(Data),
     mpln_misc_web:sub_bin(Bin).
@@ -188,6 +202,19 @@ sub_bin(Bin, Len) ->
 %% @doc converts any term to binary
 %% @since 2011-12-23 12:05
 %%
+-spec make_term2_binary(any()) -> binary().
+
+make_term2_binary(D) when is_reference(D) ->
+    make_binary(D);
+make_term2_binary(D) when is_pid(D) ->
+    make_binary(D);
+make_term2_binary(D) when is_integer(D) ->
+    make_binary(D);
+make_term2_binary(D) when is_atom(D) ->
+    make_binary(D);
+make_term2_binary(D) ->
+    make_binary(io_lib:format("~p", [D])).
+
 make_term_binary(D) when is_reference(D) ->
     make_binary(D);
 make_term_binary(D) when is_pid(D) ->
@@ -197,6 +224,7 @@ make_term_binary(D) when is_integer(D) ->
 make_term_binary(D) when is_atom(D) ->
     make_binary(D);
 make_term_binary(D) when is_list(D) ->
+    % complex list will crash here. E.g. [{a,b}]
     make_binary(D);
 make_term_binary(D) ->
     make_binary(io_lib:format("~p", [D])).
