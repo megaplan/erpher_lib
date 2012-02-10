@@ -26,6 +26,7 @@
 %%% @license MIT
 %%% @doc small node control tool for running nodes. Similar to nodetool.
 %%% Needed on windows only to stop the running node.
+%%% Config reload function can be used everywhere.
 %%%
 
 -module(mpln_node_ctl).
@@ -34,7 +35,7 @@
 %%% Exports
 %%%----------------------------------------------------------------------------
 
--export([stop/0, restart/0, reboot/0, test/0]).
+-export([stop/0, restart/0, reboot/0, test/0, config_reload/0]).
 
 %%%----------------------------------------------------------------------------
 %%% API
@@ -53,6 +54,9 @@ restart() ->
 
 reboot() ->
     cmd(reboot).
+
+config_reload() ->
+    eworkman_handler:config_reload().
 
 %%%----------------------------------------------------------------------------
 %%% Internal functions
