@@ -39,6 +39,9 @@
 -export([add_timed_stat/4, set_max_timed_stat/5]).
 -export([make_joined_list/1]).
 -export([clean_timed_stat/2]).
+-export([
+         fetch_sum_pids_memory/1
+        ]).
 
 %%%----------------------------------------------------------------------------
 %%% Defines
@@ -49,6 +52,25 @@
 %%%----------------------------------------------------------------------------
 %%% API
 %%%----------------------------------------------------------------------------
+%%
+%% @doc iterate over a list of pids and sum up the memory consumption for
+%% the processes
+%% @since 2012-02-22 15:21
+%%
+-spec fetch_sum_pids_memory(list(pid())) -> non_neg_integer().
+
+fetch_sum_pids_memory(List) ->
+    F = fun(Pid, Acc) ->
+                case process_info(Pid, memory) of
+                    {memory, N} when is_integer(N) ->
+                        Acc + N;
+                    _ ->
+                        Acc
+                end
+        end,
+    lists:foldl(F, 0, List).
+
+%%-----------------------------------------------------------------------------
 %%
 %% @doc cleans stat storage (ets) from unnecessary items
 %% @since 2012-02-03 15:26
