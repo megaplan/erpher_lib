@@ -150,6 +150,12 @@ cmd(nprocs, Node) ->
 cmd(get_procs_info, Node) ->
     call(Node, {estat_misc, get_procs_info, []});
 
+cmd(ecomet_nprocs, Node) ->
+    call(Node, {ecomet_server, get_stat_procs, []});
+
+cmd(ecomet_nprocs_mem, Node) ->
+    call(Node, {ecomet_server, get_stat_procs_mem, []});
+
 cmd(_, _Node) ->
     {error, unknown_request}.
 
