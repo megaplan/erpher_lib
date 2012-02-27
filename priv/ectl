@@ -3,11 +3,11 @@ conf="`dirname $0`/ectl-conf"
 test -f "$conf" && . "$conf"
 
 exec erl \
-    -pa "${CTL_HOME}/ebin" \
+    -pa "${EBIN}" \
     -noinput \
     -hidden \
     ${CTL_ERL_ARGS} \
-    -name ctl$$@127.0.0.1 \
-    -s erpher_extra \
+    -name "ctl${$}_${EXT_NODENAME}" \
+    -s erpher_extra_ctl \
     -nodename $EXT_NODENAME \
     -extra "$@"

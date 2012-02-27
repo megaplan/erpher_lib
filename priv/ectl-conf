@@ -1,4 +1,7 @@
 #!/bin/sh
-CTL_HOME=`pwd`
-CTL_ERL_ARGS=''
-EXT_NODENAME=`grep -e "^name" vm.args`
+CTL_HOME="`dirname $0`"
+ETC=$CTL_HOME/../../../etc
+EBIN=$CTL_HOME/../ebin
+VMARGS=$ETC/vm.args
+CTL_ERL_ARGS=`grep -e "^-setcookie" $VMARGS`
+EXT_NODENAME=`grep -e "^-name" $VMARGS | sed 's/^-name //'`
