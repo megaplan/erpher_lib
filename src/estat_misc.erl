@@ -40,6 +40,7 @@
 -export([make_joined_list/1]).
 -export([clean_timed_stat/2]).
 -export([
+         get_procs_info/0,
          fetch_sum_pids_memory/1
         ]).
 
@@ -52,6 +53,16 @@
 %%%----------------------------------------------------------------------------
 %%% API
 %%%----------------------------------------------------------------------------
+%%
+%% @doc calculate sum of memory and a number of processes
+%% @since 2012-02-27 13:21
+%%
+get_procs_info() ->
+    P = processes(),
+    Sum = fetch_sum_pids_memory(P),
+    {Sum, length(P)}.
+
+%%-----------------------------------------------------------------------------
 %%
 %% @doc iterate over a list of pids and sum up the memory consumption for
 %% the processes
