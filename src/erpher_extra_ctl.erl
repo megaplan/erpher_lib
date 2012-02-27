@@ -42,6 +42,7 @@
 %%%----------------------------------------------------------------------------
 
 -define(RPC_TIMEOUT, 15000).
+-define(EXTRA_SEP, "\n===\n").
 
 %%%----------------------------------------------------------------------------
 %%% API
@@ -55,7 +56,7 @@
 start() ->
     Node = get_dest_node(),
     Commands = get_rest_args(),
-    Res = [{X, catch cmd(Node, X)} || X <- Commands],
+    Res = [{X, catch cmd(X, Node)} || X <- Commands],
     Text = make_output(Res),
     io:format("~s", [Text]),
     halt(0).
@@ -97,7 +98,7 @@ get_rest_args() ->
 -spec make_output([{atom(), any()}]) -> string().
 
 make_output(List) ->
-    Res = [make_one_output(X) || X <- List],
+    Res = [[?EXTRA_SEP, make_one_output(X)] || X <- List],
     lists:flatten(Res).
 
 make_one_output({Cmd, {'EXIT', Reason}}) ->
@@ -141,6 +142,10 @@ cmd(ecomet_start, Node) ->
 cmd(sum_pids_memory, Node) ->
     {Mem, _Nproc} = cmd(get_procs_info, Node),
     Mem;
+
+cmd(nprocs, Node) ->
+    {_Mem, Nproc} = cmd(get_procs_info, Node),
+    Nproc;
 
 cmd(get_procs_info, Node) ->
     call(Node, {estat_misc, get_procs_info, []});
