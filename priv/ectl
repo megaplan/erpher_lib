@@ -1,9 +1,20 @@
 #!/bin/sh
-conf="`dirname $0`/ectl-conf"
+fullpath=`readlink -f $0`
+curdir="`dirname ${fullpath}`"
+conf="$curdir/ectl-conf"
 test -f "$conf" && . "$conf"
+
+DHOME=$curdir
+DHOME_DIR=`dirname "$DHOME"`
+DHOME_BASE=`basename "$DHOME_DIR"`
+
+LIB_DIR=`dirname "$DHOME_DIR"`
+EBINZ="${LIB_DIR}/${DHOME_BASE}.ez/${DHOME_BASE}/ebin"
+EBIN="${LIB_DIR}/${DHOME_BASE}/ebin"
 
 exec erl \
     -pa "${EBIN}" \
+    -pa "${EBINZ}" \
     -noinput \
     -hidden \
     ${CTL_ERL_ARGS} \
