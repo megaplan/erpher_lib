@@ -1,0 +1,4 @@
+#!/bin/sh
+CTL_HOME=`pwd`
+CTL_ERL_ARGS=''
+EXT_NODENAME=`grep -e "^name" vm.args`
