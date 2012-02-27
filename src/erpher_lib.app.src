@@ -1,7 +1,7 @@
 {application, erpher_lib, [
     {description, "erpher_lib"},
     {id, "erpher_lib"},
-    {vsn, "1.6.1"},
+    {vsn, "1.6.2"},
     {modules, [
         erpher_extra_ctl,
         estat_misc,
