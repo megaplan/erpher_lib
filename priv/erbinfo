@@ -1,0 +1,34 @@
+#!/bin/sh
+# control script for rabbit-mq
+# for the full list of parameters run it without any.
+# example parameters:
+#    list_queues [-p <vhostpath>] [<queueinfoitem> ...]
+#    list_exchanges [-p <vhostpath>] [<exchangeinfoitem> ...]
+#    list_bindings [-p <vhostpath>] [<bindinginfoitem> ...]
+#    list_connections [<connectioninfoitem> ...]
+#    list_channels [<channelinfoitem> ...]
+#    list_consumers          
+
+fullpath=`readlink -f $0`
+curdir="`dirname ${fullpath}`"
+conf="$curdir/ectl-conf"
+test -f "$conf" && . "$conf"
+
+DHOME=$curdir
+DHOME_DIR=`dirname "$DHOME"`
+DHOME_BASE=`basename "$DHOME_DIR"`
+
+LIB_DIR=`dirname "$DHOME_DIR"`
+EBINZ="${LIB_DIR}/${DHOME_BASE}.ez/${DHOME_BASE}/ebin"
+EBIN="${LIB_DIR}/${DHOME_BASE}/ebin"
+
+exec erl \
+    -pa "${EBIN}" \
+    -pa "${EBINZ}" \
+    -noinput \
+    -hidden \
+    ${CTL_ERL_ARGS} \
+    -name "ctl${$}_${EXT_NODENAME}" \
+    -s rabbit_control \
+    -nodename $EXT_NODENAME \
+    -extra "$@"
