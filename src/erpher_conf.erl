@@ -77,32 +77,32 @@ add_config2([{App, Pars} | T]) ->
 %% @doc merge parameters for one app
 %%
 merge_one_app(Env, Conf) ->
-    merge_one_app2(Env, Conf, [], []).
+    merge_one_app2(Env, Conf, []).
 
-merge_one_app2(Env_rest, [], Env_acc, _Conf_rest) ->
+merge_one_app2(Env_rest, [], Env_acc) ->
     Env_rest ++ Env_acc;
 
-merge_one_app2(Env, [{Key, Val} = H | T], Env_acc, Conf_rest) ->
+merge_one_app2(Env, [{Key, Val} | T], Env_acc) ->
     {Env_pars, Env_rest} = get_par_list(Key, Env),
     case get_type(Val) of
         list_of_tuples ->
             % item: {k, v},
             % go deeper
-            New_val = merge_one_app2(Env_pars, Val, [], []),
-            merge_one_app2(Env_rest, T, [{Key, New_val} | Env_acc], [H|Conf_rest]);
+            New_val = merge_one_app2(Env_pars, Val, []),
+            merge_one_app2(Env_rest, T, [{Key, New_val} | Env_acc]);
         list_of_lists ->
             % item: [{k,v}...],
             % add list
             New_val = Env_pars ++ Val,
-            merge_one_app2(Env_rest, T, [{Key, New_val} | Env_acc], [H|Conf_rest]);
+            merge_one_app2(Env_rest, T, [{Key, New_val} | Env_acc]);
         string ->
             % item: string,
             % replace string
-            merge_one_app2(Env_rest, T, [{Key, Val} | Env_acc], [H|Conf_rest]);
+            merge_one_app2(Env_rest, T, [{Key, Val} | Env_acc]);
         terminal ->
             % item: atom, integer, binary, etc.
             % replace it
-            merge_one_app2(Env_rest, T, [{Key, Val} | Env_acc], [H|Conf_rest])
+            merge_one_app2(Env_rest, T, [{Key, Val} | Env_acc])
     end.
 
 %%-----------------------------------------------------------------------------
