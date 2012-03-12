@@ -43,14 +43,22 @@
 %%
 %% @doc commands to send to target node
 %%
+-spec test() -> no_return().
+
 test() ->
     cmd(test).
+
+-spec stop() -> no_return().
 
 stop() ->
     cmd(stop).
 
+-spec restart() -> no_return().
+
 restart() ->
     cmd(restart).
+
+-spec reboot() -> no_return().
 
 reboot() ->
     cmd(reboot).
@@ -96,9 +104,13 @@ start_net("-name", Node) ->
 %%
 %% @doc sends a command to the target node and halts own VM
 %%
+-spec cmd(atom()) -> no_return().
+
 cmd(Cmd) ->
     Data = get_node_name(),
     cmd2(Cmd, Data).
+
+-spec cmd2(any(), tuple()) -> no_return().
 
 cmd2(_, {error, Reason}) ->
     io:format("some error: ~p~n", [Reason]),
