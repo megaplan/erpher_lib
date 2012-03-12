@@ -1,8 +1,9 @@
 {application, erpher_lib, [
     {description, "erpher_lib"},
     {id, "erpher_lib"},
-    {vsn, "1.6.3"},
+    {vsn, "1.6.4"},
     {modules, [
+        erpher_conf,
         erpher_et,
         erpher_extra_ctl,
         estat_misc,
