@@ -156,6 +156,9 @@ cmd(ecomet_nprocs, Node) ->
 cmd(ecomet_nprocs_mem, Node) ->
     call(Node, {ecomet_server, get_stat_procs_mem, []});
 
+cmd(config_reload, Node) ->
+    call(Node, {eworkman_handler, config_reload, []});
+
 cmd(_, _Node) ->
     {error, unknown_request}.
 
