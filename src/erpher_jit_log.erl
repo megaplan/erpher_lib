@@ -34,6 +34,7 @@
 %%%----------------------------------------------------------------------------
 
 -export([
+         clean_jit_logs/3,
          prepare_jit_tab/1,
          add_jit_msg/5,
          send_jit_log/2
@@ -75,6 +76,14 @@ send_jit_log(Conf_level, Tid) ->
     %% simple version of ets:first + ets:next
     ets:foldl(F, none, Tid).
 
+%%-----------------------------------------------------------------------------
+%%
+%% @doc clean extra jit log messages
+%%
+clean_jit_logs(Tid, Limit_n, Limit_t) ->
+    First = find_first_keep_time(Tid, Limit_n, Limit_t),
+    clean_jit_log2(Tid, First).
+
 %%%----------------------------------------------------------------------------
 %%% Internal functions
 %%%----------------------------------------------------------------------------
@@ -96,5 +105,65 @@ send_jit_item({{Time, Now}, {Limit, Id1, Id2, Msg}}, Level)
 
 send_jit_item(_, _) ->
     ok.
+
+%%-----------------------------------------------------------------------------
+%%
+%% @doc find biggest time key for either time or amount
+%%
+find_first_keep_time(Tid, Limit_n, Limit_t) ->
+    Last_n = find_first_keep_n_key(Tid, Limit_n),
+    Last_t = find_first_keep_t_key(Limit_t),
+    if  Last_n == '$end_of_table' ->
+            Last_t;
+        Last_n < Last_t -> 
+            Last_t;
+        true ->
+            Last_n
+    end.
+
+%%
+%% @doc calculate first allowed key for keeping configured time limit
+%%
+find_first_keep_t_key(Limit_h) ->
+    Delta = Limit_h * 3600,
+    {Ms, S, Us} = now(),
+    Sec_dt = Ms * 1000000 + S - Delta,
+    Ms2 = trunc(Sec_dt / 1000000),
+    S2 = trunc(Sec_dt) rem 1000000, % trunc here for Limit_h is not an integer
+    Now2 = {Ms2, S2, Us},
+    Time2 = mpln_misc_time:get_gmt_time(Now2),
+    {Time2, Now2}.
+
+%%
+%% @doc find first allowed key for keeping configured number of items
+%%
+find_first_keep_n_key(Tid, Limit) ->
+    Key = ets:last(Tid),
+    find_first_keep_n_key2(Tid, Limit, Key).
+
+find_first_keep_n_key2(_Tid, _, '$end_of_table' = Key) ->
+    Key;
+
+find_first_keep_n_key2(_Tid, 0, Key) ->
+    Key;
+    
+find_first_keep_n_key2(Tid, N, Key) ->
+    case ets:prev(Tid, Key) of
+        '$end_of_table' ->
+            Key;
+        Key2 ->
+            find_first_keep_n_key2(Tid, N-1, Key2)
+    end.
+
+%%
+%% @doc delete every item with key smaller then first allowed one
+%%
+clean_jit_log2(Tid, First) ->
+    Cond = [
+            {{'$1','_'},
+             [{'<','$1',{const, First}}],
+             [true]}
+           ],
+    ets:select_delete(Tid, Cond).
 
 %%-----------------------------------------------------------------------------

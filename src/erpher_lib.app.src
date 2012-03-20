@@ -1,11 +1,12 @@
 {application, erpher_lib, [
     {description, "erpher_lib"},
     {id, "erpher_lib"},
-    {vsn, "1.6.4"},
+    {vsn, "1.6.5"},
     {modules, [
         erpher_conf,
         erpher_et,
         erpher_extra_ctl,
+        erpher_jit_log,
         estat_misc,
         mpln_misc_conf,
         mpln_misc_log,
