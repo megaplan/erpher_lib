@@ -37,7 +37,7 @@
          clean_jit_logs/3,
          prepare_jit_tab/1,
          add_jit_msg/5,
-         send_jit_log/2
+         send_jit_log/4
         ]).
 
 %%%----------------------------------------------------------------------------
@@ -64,6 +64,36 @@ add_jit_msg(Tab, Id1, Id2, Limit, Data) ->
 
 %%-----------------------------------------------------------------------------
 %%
+%% @doc send jit log data to stat server if there is an error signs
+%% or configured jit log level is high enough
+%% @since 2012-03-20 19:34
+%%
+send_jit_log(normal, Level, Tid, _Id) ->
+    send_jit_log(Level, Tid);
+
+send_jit_log(shutdown, Level, Tid, _Id) ->
+    send_jit_log(Level, Tid);
+
+send_jit_log({shutdown, _Term}, Level, Tid, _Id) ->
+    send_jit_log(Level, Tid);
+
+send_jit_log(_Reason, _, Tid, Id) ->
+    add_jit_msg(Tid, Id, 'crash', 0, 'crash'),
+    send_jit_log(max, Tid).
+
+%%-----------------------------------------------------------------------------
+%%
+%% @doc clean extra jit log messages
+%% @since 2012-03-20 18:11
+%%
+clean_jit_logs(Tid, Limit_n, Limit_t) ->
+    First = find_first_keep_time(Tid, Limit_n, Limit_t),
+    clean_jit_log2(Tid, First).
+
+%%%----------------------------------------------------------------------------
+%%% Internal functions
+%%%----------------------------------------------------------------------------
+%%
 %% @doc send all messages with high enough jit log level from given ets
 %% to erpher_rt_stat
 %% @since 2012-03-20 13:20
@@ -76,17 +106,6 @@ send_jit_log(Conf_level, Tid) ->
     %% simple version of ets:first + ets:next
     ets:foldl(F, none, Tid).
 
-%%-----------------------------------------------------------------------------
-%%
-%% @doc clean extra jit log messages
-%%
-clean_jit_logs(Tid, Limit_n, Limit_t) ->
-    First = find_first_keep_time(Tid, Limit_n, Limit_t),
-    clean_jit_log2(Tid, First).
-
-%%%----------------------------------------------------------------------------
-%%% Internal functions
-%%%----------------------------------------------------------------------------
 %%
 %% @doc send one message to erpher_rt_stat if message log level higher than
 %% limit
