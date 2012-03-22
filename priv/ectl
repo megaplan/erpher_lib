@@ -12,7 +12,10 @@ LIB_DIR=`dirname "$DHOME_DIR"`
 EBINZ="${LIB_DIR}/${DHOME_BASE}.ez/${DHOME_BASE}/ebin"
 EBIN="${LIB_DIR}/${DHOME_BASE}/ebin"
 
-exec erl \
+ERPHER_DIR=`dirname "$LIB_DIR"`
+ERLBIN=`find $ERPHER_DIR/erts* -name erl`
+
+exec $ERLBIN \
     -pa "${EBIN}" \
     -pa "${EBINZ}" \
     -noinput \
